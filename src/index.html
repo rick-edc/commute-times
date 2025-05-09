@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Commute Time</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #1e1e1e;
+            color: #ffffff;
+            -webkit-app-region: drag;
+            transition: background-color 0.3s ease;
+        }
+        #time {
+            font-size: 36px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: -0.5px;
+        }
+        #status {
+            font-size: 11px;
+            color: #8e8e8e;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        #sparkline {
+            width: 200px;
+            height: 40px;
+            background: transparent;
+        }
+        @media (prefers-color-scheme: light) {
+            body {
+                background: #f0f0f0;
+                color: #000000;
+            }
+            #time {
+                color: #000000;
+            }
+            #status {
+                color: #666666;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="time">Loading...</div>
+    <div id="status">Last updated: Never</div>
+    <canvas id="sparkline" width="200" height="40"></canvas>
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        function drawSparkline(canvas, data) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 2;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            if (data.length < 2) return;
+            
+            // Find min and max for scaling
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range = max - min || 1;
+            
+            // Calculate points
+            const points = data.map((value, index) => ({
+                x: padding + (index * (width - 2 * padding) / (data.length - 1)),
+                y: height - padding - ((value - min) * (height - 2 * padding) / range)
+            }));
+            
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            points.slice(1).forEach(point => {
+                ctx.lineTo(point.x, point.y);
+            });
+            ctx.strokeStyle = getComputedStyle(document.body).color;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        
+        ipcRenderer.on('update-time', (event, data) => {
+            document.getElementById('time').textContent = data.current;
+            document.getElementById('status').textContent = 
+                `Last updated: ${new Date().toLocaleTimeString()}`;
+            
+            const canvas = document.getElementById('sparkline');
+            drawSparkline(canvas, data.history);
+        });
+    </script>
+</body>
+</html>

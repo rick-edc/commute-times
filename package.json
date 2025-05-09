@@ -1,0 +1,37 @@
+{
+  "name": "commute-times",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "pnpm run build && electron .",
+    "build": "tsc && cp -r src/index.html src/config.yaml dist/",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@types/puppeteer": "^5.4.7",
+    "@types/yaml": "^1.9.6",
+    "puppeteer": "^24.8.0",
+    "yaml": "^2.7.1"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.12",
+    "electron": "^25.9.8",
+    "electron-builder": "^24.6.4",
+    "ts-node": "latest",
+    "typescript": "latest"
+  },
+  "build": {
+    "appId": "com.commute-times.app",
+    "productName": "Commute Times",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icons.icns"
+    },
+    "files": [
+      "dist/**/*"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["electron", "puppeteer"]
+  }
+}
